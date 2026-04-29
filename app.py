@@ -722,9 +722,18 @@ process = normalize_columns(process)
 maintenance = normalize_columns(maintenance)
 amdec = normalize_columns(amdec)
 
+# ✅ Convert ONLY real date columns (fix bug)
+date_columns = [
+    "date",
+    "date_installation",
+    "derniere_maintenance",
+    "derniere_intervention",
+    "prochaine_intervention"
+]
+
 for df in [incidents, serpentins, process, maintenance]:
     for col in df.columns:
-        if "date" in col or "intervention" in col:
+        if col in date_columns:
             df[col] = pd.to_datetime(df[col], errors="coerce")
 
 # ============================================================
@@ -1061,11 +1070,32 @@ with tab3:
             )
         )
 
+        # ✅ KPIs (FIXED BLOCK)
         total_actions = len(maintenance)
         actions_late = int((maintenance["statut"] == "En retard").sum())
-        total_charge = maintenance["charge_homme_h"].sum() if "charge_homme_h" in maintenance.columns else 0
-        avg_duration = maintenance["duree_intervention_h"].mean() if "duree_intervention_h" in maintenance.columns else 0
 
+        if "charge_homme_h" in maintenance.columns and not maintenance.empty:
+            maintenance["charge_homme_h"] = pd.to_numeric(
+                maintenance["charge_homme_h"],
+                errors="coerce"
+            )
+            total_charge = maintenance["charge_homme_h"].sum()
+        else:
+            total_charge = 0
+
+        if "duree_intervention_h" in maintenance.columns and not maintenance.empty:
+            maintenance["duree_intervention_h"] = pd.to_numeric(
+                maintenance["duree_intervention_h"],
+                errors="coerce"
+            )
+            avg_duration = maintenance["duree_intervention_h"].mean()
+
+            if pd.isna(avg_duration):
+                avg_duration = 0
+        else:
+            avg_duration = 0
+
+        # ✅ KPI DISPLAY
         m1, m2, m3, m4 = st.columns(4)
 
         with m1:
@@ -1075,15 +1105,15 @@ with tab3:
         with m3:
             kpi_card("Charge totale", f"{total_charge:.1f} h.h", "Homme-heures")
         with m4:
-           kpi_card("Durée moyenne", f"{avg_duration:.1f} h", "Par intervention")
+            kpi_card("Durée moyenne", f"{avg_duration:.1f} h", "Par intervention")
 
         st.write("")
 
+        # ✅ Charts
         c1, c2 = st.columns(2)
 
         status_count = maintenance["statut"].value_counts().reset_index()
         status_count.columns = ["statut", "nombre"]
-
         fig = px.pie(
             status_count,
             names="statut",
