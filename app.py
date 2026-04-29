@@ -1316,4 +1316,4 @@ with tab4:
         mime="text/csv"
     )
 
-    st.success("Ce rapport peut être intégré dans la phase Control de la démarche DMAIC.")
+   
