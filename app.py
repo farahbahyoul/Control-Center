@@ -38,6 +38,29 @@ def log_action(username, action, details=""):
         }).execute()
     except Exception as e:
         st.warning(f"Erreur journalisation : {e}")
+def save_setting(name, value):
+    supabase.table("settings").upsert(
+        {
+            "setting_name": name,
+            "setting_value": str(value),
+            "updated_by": st.session_state["username"]
+        },
+        on_conflict="setting_name"
+    ).execute()
+
+
+def load_setting(name, default_value):
+    result = (
+        supabase.table("settings")
+        .select("setting_value")
+        .eq("setting_name", name)
+        .execute()
+    )
+
+    if len(result.data) > 0:
+        return type(default_value)(result.data[0]["setting_value"])
+
+    return default_value
 
 
 def login_page():
@@ -711,22 +734,66 @@ with st.sidebar.expander("Seuils de contrôle", expanded=False):
     sc1, sc2 = st.columns(2)
 
     with sc1:
-        pressure_min = st.number_input("Pression vapeur min (bar)", min_value=0.0, max_value=20.0, value=5.8, step=0.1, key="pressure_min")
-        sulfur_temp_min = st.number_input("Temp. soufre min (°C)", min_value=0.0, max_value=300.0, value=135.0, step=1.0, key="sulfur_temp_min")
+        pressure_min = st.number_input(
+            "Pression vapeur min (bar)",
+            min_value=0.0,
+            max_value=20.0,
+            value=load_setting("pressure_min", 5.8),
+            step=0.1,
+            key="pressure_min"
+        )
+
+        sulfur_temp_min = st.number_input(
+            "Temp. soufre min (°C)",
+            min_value=0.0,
+            max_value=300.0,
+            value=load_setting("sulfur_temp_min", 135.0),
+            step=1.0,
+            key="sulfur_temp_min"
+        )
 
     with sc2:
-        sulfur_temp_max = st.number_input("Temp. soufre max (°C)", min_value=0.0, max_value=300.0, value=145.0, step=1.0, key="sulfur_temp_max")
-        availability_target = st.number_input("Disponibilité cible (%)", min_value=0.0, max_value=100.0, value=85.0, step=1.0, key="availability_target")
+        sulfur_temp_max = st.number_input(
+            "Temp. soufre max (°C)",
+            min_value=0.0,
+            max_value=300.0,
+            value=load_setting("sulfur_temp_max", 145.0),
+            step=1.0,
+            key="sulfur_temp_max"
+        )
 
-    criticality_threshold = st.number_input("Seuil criticité AMDEC", min_value=0, max_value=1000, value=300, step=10, key="criticality_threshold")
+        availability_target = st.number_input(
+            "Disponibilité cible (%)",
+            min_value=0.0,
+            max_value=100.0,
+            value=load_setting("availability_target", 85.0),
+            step=1.0,
+            key="availability_target"
+        )
+
+    criticality_threshold = st.number_input(
+        "Seuil criticité AMDEC",
+        min_value=0,
+        max_value=1000,
+        value=load_setting("criticality_threshold", 300),
+        step=10,
+        key="criticality_threshold"
+    )
+
     if st.button("Enregistrer les seuils"):
+        save_setting("pressure_min", pressure_min)
+        save_setting("sulfur_temp_min", sulfur_temp_min)
+        save_setting("sulfur_temp_max", sulfur_temp_max)
+        save_setting("availability_target", availability_target)
+        save_setting("criticality_threshold", criticality_threshold)
+
         log_action(
             st.session_state["username"],
             "Modification des seuils",
-            f"Pression={pressure_min} | Temp min={sulfur_temp_min} | "
-            f"Temp max={sulfur_temp_max} | Dispo cible={availability_target} | "
-            f"Criticité={criticality_threshold}"
+            f"Pression={pressure_min} | Temp min={sulfur_temp_min} | Temp max={sulfur_temp_max} | "
+            f"Dispo cible={availability_target} | Criticité={criticality_threshold}"
         )
+
         st.success("Seuils enregistrés")
 st.sidebar.divider()
 
