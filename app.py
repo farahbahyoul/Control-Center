@@ -877,9 +877,39 @@ else:
         with f4:
             manual_gravity = st.sidebar.slider("Gravité", 1, 5, 3)
         if st.sidebar.button("Ajouter l’incident"):
-            new_row = pd.DataFrame({"date": [pd.to_datetime(manual_date)], "equipement": [manual_equipment], "cause": [manual_cause], "gravite": [manual_gravity]})
-            st.session_state.manual_incidents = pd.concat([st.session_state.manual_incidents, new_row], ignore_index=True)
-            st.rerun()
+
+    #  SAVE TO DATABASE (NEW PART)
+    supabase.table("incidents").insert({
+        "date": str(manual_date),
+        "equipement": manual_equipment,
+        "cause": manual_cause,
+        "gravite": int(manual_gravity),
+        "created_by": st.session_state["username"]
+    }).execute()
+
+    # 👉KEEP your current behavior (for display)
+    new_row = pd.DataFrame({
+        "date": [pd.to_datetime(manual_date)],
+        "equipement": [manual_equipment],
+        "cause": [manual_cause],
+        "gravite": [manual_gravity]
+    })
+
+    st.session_state.manual_incidents = pd.concat(
+        [st.session_state.manual_incidents, new_row],
+        ignore_index=True
+    )
+
+    #  LOG (important)
+    log_action(
+        st.session_state["username"],
+        "Ajout incident",
+        f"{manual_equipment} | {manual_cause} | Gravité={manual_gravity}"
+    )
+
+    st.success("Incident ajouté")
+
+    st.rerun()
 
     elif manual_choice == "Donnée process":
         f1, f2, f3, f4 = st.sidebar.columns(4)
