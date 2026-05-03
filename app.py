@@ -1400,8 +1400,8 @@ def create_pdf_report(
            # =========================
 # PAGE 2 - FIGURES 1/2
 # =========================
-           fig = plt.figure(figsize=(11.69, 8.27))
-           fig.patch.set_facecolor("white")
+    fig = plt.figure(figsize=(11.69, 8.27))
+    fig.patch.set_facecolor("white")
     
     fig.suptitle(
         "Figures principales - Incidents et maintenance",
