@@ -19,6 +19,66 @@ try:
 except Exception:
     MATPLOTLIB_PDF_AVAILABLE = False
 
+from supabase import create_client, Client
+
+SUPABASE_URL = st.secrets["SUPABASE_URL"]
+SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
+
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+# ============================================================
+# AUTHENTIFICATION + ACTIVITY LOG
+# ============================================================
+
+def log_action(username, action, details=""):
+    try:
+        supabase.table("activity_log").insert({
+            "username": username,
+            "action": action,
+            "details": details
+        }).execute()
+    except Exception as e:
+        st.warning(f"Erreur journalisation : {e}")
+
+
+def login_page():
+    st.markdown("## Connexion au tableau de bord")
+
+    username = st.text_input("Nom d'utilisateur")
+    password = st.text_input("Mot de passe", type="password")
+
+    if st.button("Se connecter"):
+        try:
+            result = (
+                supabase.table("users")
+                .select("*")
+                .eq("username", username)
+                .eq("password", password)
+                .execute()
+            )
+
+            if len(result.data) > 0:
+                st.session_state["logged_in"] = True
+                st.session_state["username"] = username
+                st.session_state["role"] = result.data[0].get("role", "user")
+
+                log_action(username, "Connexion", "Utilisateur connecté au dashboard")
+
+                st.success("Connexion réussie")
+                st.rerun()
+            else:
+                st.error("Nom d'utilisateur ou mot de passe incorrect")
+
+        except Exception as e:
+            st.error(f"Erreur de connexion : {e}")
+
+
+if "logged_in" not in st.session_state:
+    st.session_state["logged_in"] = False
+
+if not st.session_state["logged_in"]:
+    login_page()
+    st.stop()
+
 st.set_page_config(page_title="U263 Serpentin Control Center", layout="wide")
 
 # ============================================================
@@ -635,6 +695,39 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 
+st.sidebar.markdown(f"### Utilisateur : {st.session_state['username']}")
+
+if st.sidebar.button("Se déconnecter"):
+    log_action(
+        st.session_state["username"],
+        "Déconnexion",
+        "Utilisateur déconnecté"
+    )
+    st.session_state["logged_in"] = False
+    st.session_state["username"] = ""
+    st.rerun()
+
+st.sidebar.markdown("### Dernières activités")
+
+try:
+    logs = (
+        supabase.table("activity_log")
+        .select("*")
+        .order("created_at", desc=True)
+        .limit(5)
+        .execute()
+    )
+
+    for log in logs.data:
+        st.sidebar.markdown(
+            f"**{log['username']}**  \n"
+            f"{log['action']}  \n"
+            f"<small>{log['created_at']}</small>",
+            unsafe_allow_html=True
+        )
+
+except Exception as e:
+    st.sidebar.warning("Historique indisponible")
 st.sidebar.divider()
 
 with st.sidebar.expander("Seuils de contrôle", expanded=False):
