@@ -1400,207 +1400,207 @@ def create_pdf_report(
            # =========================
 # PAGE 2 - FIGURES 1/2
 # =========================
-fig = plt.figure(figsize=(11.69, 8.27))
-fig.patch.set_facecolor("white")
-
-fig.suptitle(
-    "Figures principales - Incidents et maintenance",
-    fontsize=22,
-    fontweight="bold",
-    color=DARK_GREEN,
-    x=0.05,
-    ha="left"
-)
-
-ax1 = fig.add_axes([0.08, 0.18, 0.40, 0.58])
-
-if top_causes is not None and len(top_causes) > 0:
-    causes = top_causes.sort_values("Nombre", ascending=True)
-    ax1.barh(causes["Cause"], causes["Nombre"], color=ORANGE)
-    ax1.set_title("Top 5 des causes d’incidents", fontsize=13, fontweight="bold")
-    ax1.set_xlabel("Nombre")
-    ax1.tick_params(axis="y", labelsize=9)
-    ax1.grid(axis="x", alpha=0.25)
-else:
-    ax1.text(0.5, 0.5, "Aucune donnée d’incident disponible", ha="center", va="center")
-    ax1.axis("off")
-
-ax2 = fig.add_axes([0.58, 0.18, 0.32, 0.58])
-
-if "statut" in maintenance.columns and len(maintenance) > 0:
-    status_count = maintenance["statut"].value_counts().reset_index()
-    status_count.columns = ["Statut", "Nombre"]
-
-    colors = []
-    for statut in status_count["Statut"]:
-        if "retard" in str(statut).lower():
-            colors.append(RED)
-        elif "aujourd" in str(statut).lower():
-            colors.append(ORANGE)
-        else:
-            colors.append(GREEN)
-
-    ax2.pie(
-        status_count["Nombre"],
-        labels=status_count["Statut"],
-        autopct="%1.0f%%",
-        startangle=90,
-        colors=colors,
-        wedgeprops={"width": 0.45}
-    )
-    ax2.set_title("Répartition des actions PMP", fontsize=13, fontweight="bold")
-else:
-    ax2.text(0.5, 0.5, "Aucune donnée maintenance", ha="center", va="center")
-    ax2.axis("off")
-
-pdf.savefig(fig)
-plt.close(fig)
-
-
-# =========================
-# PAGE 3 - FIGURES 2/2
-# =========================
-fig = plt.figure(figsize=(11.69, 8.27))
-fig.patch.set_facecolor("white")
-
-fig.suptitle(
-    "Figures principales - Disponibilité et AMDEC",
-    fontsize=22,
-    fontweight="bold",
-    color=DARK_GREEN,
-    x=0.05,
-    ha="left"
-)
-
-ax3 = fig.add_axes([0.08, 0.18, 0.40, 0.58])
-
-if critical_fondoirs is not None and len(critical_fondoirs) > 0:
-    colors = [status_color(s) for s in critical_fondoirs["Statut"]]
-
-    ax3.bar(
-        critical_fondoirs["Fondoir"],
-        critical_fondoirs["Disponibilité (%)"],
-        color=colors
-    )
-
-    ax3.axhline(
-        y=float(summary_dict.get("Disponibilité cible (%)", 0)),
+           fig = plt.figure(figsize=(11.69, 8.27))
+           fig.patch.set_facecolor("white")
+    
+    fig.suptitle(
+        "Figures principales - Incidents et maintenance",
+        fontsize=22,
+        fontweight="bold",
         color=DARK_GREEN,
-        linestyle="--",
-        linewidth=1
+        x=0.05,
+        ha="left"
     )
-
-    ax3.set_ylim(0, 100)
-    ax3.set_title("Disponibilité par fondoir", fontsize=13, fontweight="bold")
-    ax3.set_ylabel("Disponibilité (%)")
-    ax3.grid(axis="y", alpha=0.25)
-
-else:
-    ax3.text(0.5, 0.5, "Aucune donnée de disponibilité", ha="center", va="center")
-    ax3.axis("off")
-
-ax4 = fig.add_axes([0.60, 0.18, 0.34, 0.58])
-
-if all(col in amdec.columns for col in ["g", "o", "d"]) and len(amdec) > 0:
-    amdec_report = amdec.copy()
-    amdec_report["g"] = pd.to_numeric(amdec_report["g"], errors="coerce")
-    amdec_report["o"] = pd.to_numeric(amdec_report["o"], errors="coerce")
-    amdec_report["d"] = pd.to_numeric(amdec_report["d"], errors="coerce")
-    amdec_report["criticite"] = amdec_report["g"] * amdec_report["o"] * amdec_report["d"]
-    amdec_report = amdec_report.sort_values("criticite", ascending=True).tail(5)
-
-    if "mode_defaillance" in amdec_report.columns:
-        ax4.barh(
-            amdec_report["mode_defaillance"],
-            amdec_report["criticite"],
-            color=RED
+    
+    ax1 = fig.add_axes([0.08, 0.18, 0.40, 0.58])
+    
+    if top_causes is not None and len(top_causes) > 0:
+        causes = top_causes.sort_values("Nombre", ascending=True)
+        ax1.barh(causes["Cause"], causes["Nombre"], color=ORANGE)
+        ax1.set_title("Top 5 des causes d’incidents", fontsize=13, fontweight="bold")
+        ax1.set_xlabel("Nombre")
+        ax1.tick_params(axis="y", labelsize=9)
+        ax1.grid(axis="x", alpha=0.25)
+    else:
+        ax1.text(0.5, 0.5, "Aucune donnée d’incident disponible", ha="center", va="center")
+        ax1.axis("off")
+    
+    ax2 = fig.add_axes([0.58, 0.18, 0.32, 0.58])
+    
+    if "statut" in maintenance.columns and len(maintenance) > 0:
+        status_count = maintenance["statut"].value_counts().reset_index()
+        status_count.columns = ["Statut", "Nombre"]
+    
+        colors = []
+        for statut in status_count["Statut"]:
+            if "retard" in str(statut).lower():
+                colors.append(RED)
+            elif "aujourd" in str(statut).lower():
+                colors.append(ORANGE)
+            else:
+                colors.append(GREEN)
+    
+        ax2.pie(
+            status_count["Nombre"],
+            labels=status_count["Statut"],
+            autopct="%1.0f%%",
+            startangle=90,
+            colors=colors,
+            wedgeprops={"width": 0.45}
         )
-
-        ax4.axvline(
-            criticality_threshold,
-            linestyle="--",
+        ax2.set_title("Répartition des actions PMP", fontsize=13, fontweight="bold")
+    else:
+        ax2.text(0.5, 0.5, "Aucune donnée maintenance", ha="center", va="center")
+        ax2.axis("off")
+    
+    pdf.savefig(fig)
+    plt.close(fig)
+    
+    
+    # =========================
+    # PAGE 3 - FIGURES 2/2
+    # =========================
+    fig = plt.figure(figsize=(11.69, 8.27))
+    fig.patch.set_facecolor("white")
+    
+    fig.suptitle(
+        "Figures principales - Disponibilité et AMDEC",
+        fontsize=22,
+        fontweight="bold",
+        color=DARK_GREEN,
+        x=0.05,
+        ha="left"
+    )
+    
+    ax3 = fig.add_axes([0.08, 0.18, 0.40, 0.58])
+    
+    if critical_fondoirs is not None and len(critical_fondoirs) > 0:
+        colors = [status_color(s) for s in critical_fondoirs["Statut"]]
+    
+        ax3.bar(
+            critical_fondoirs["Fondoir"],
+            critical_fondoirs["Disponibilité (%)"],
+            color=colors
+        )
+    
+        ax3.axhline(
+            y=float(summary_dict.get("Disponibilité cible (%)", 0)),
             color=DARK_GREEN,
+            linestyle="--",
             linewidth=1
         )
-
-        ax4.set_title("Top 5 criticités AMDEC", fontsize=13, fontweight="bold")
-        ax4.set_xlabel("Criticité")
-        ax4.tick_params(axis="y", labelsize=8)
-        ax4.grid(axis="x", alpha=0.25)
+    
+        ax3.set_ylim(0, 100)
+        ax3.set_title("Disponibilité par fondoir", fontsize=13, fontweight="bold")
+        ax3.set_ylabel("Disponibilité (%)")
+        ax3.grid(axis="y", alpha=0.25)
+    
     else:
-        ax4.text(0.5, 0.5, "Colonne mode_defaillance absente", ha="center", va="center")
+        ax3.text(0.5, 0.5, "Aucune donnée de disponibilité", ha="center", va="center")
+        ax3.axis("off")
+    
+    ax4 = fig.add_axes([0.60, 0.18, 0.34, 0.58])
+    
+    if all(col in amdec.columns for col in ["g", "o", "d"]) and len(amdec) > 0:
+        amdec_report = amdec.copy()
+        amdec_report["g"] = pd.to_numeric(amdec_report["g"], errors="coerce")
+        amdec_report["o"] = pd.to_numeric(amdec_report["o"], errors="coerce")
+        amdec_report["d"] = pd.to_numeric(amdec_report["d"], errors="coerce")
+        amdec_report["criticite"] = amdec_report["g"] * amdec_report["o"] * amdec_report["d"]
+        amdec_report = amdec_report.sort_values("criticite", ascending=True).tail(5)
+    
+        if "mode_defaillance" in amdec_report.columns:
+            ax4.barh(
+                amdec_report["mode_defaillance"],
+                amdec_report["criticite"],
+                color=RED
+            )
+    
+            ax4.axvline(
+                criticality_threshold,
+                linestyle="--",
+                color=DARK_GREEN,
+                linewidth=1
+            )
+    
+            ax4.set_title("Top 5 criticités AMDEC", fontsize=13, fontweight="bold")
+            ax4.set_xlabel("Criticité")
+            ax4.tick_params(axis="y", labelsize=8)
+            ax4.grid(axis="x", alpha=0.25)
+        else:
+            ax4.text(0.5, 0.5, "Colonne mode_defaillance absente", ha="center", va="center")
+            ax4.axis("off")
+    else:
+        ax4.text(0.5, 0.5, "Données AMDEC indisponibles", ha="center", va="center")
         ax4.axis("off")
-else:
-    ax4.text(0.5, 0.5, "Données AMDEC indisponibles", ha="center", va="center")
-    ax4.axis("off")
-
-pdf.savefig(fig)
-plt.close(fig)
-
-            # =========================
-            # PAGE 3 - ACTIONS
-            # =========================
-            fig = plt.figure(figsize=(11.69, 8.27))
-            fig.patch.set_facecolor("white")
-            ax = fig.add_axes([0, 0, 1, 1])
-            ax.axis("off")
-
-            ax.text(
-                0.05, 0.93,
-                "Actions recommandées",
-                fontsize=22,
-                fontweight="bold",
-                color=DARK_GREEN
-            )
-
-            if recommendations is None or len(recommendations) == 0:
-                ax.add_patch(plt.Rectangle((0.05, 0.80), 0.90, 0.08, color=GREEN, alpha=0.12))
+    
+    pdf.savefig(fig)
+    plt.close(fig)
+    
+                # =========================
+                # PAGE 3 - ACTIONS
+                # =========================
+                fig = plt.figure(figsize=(11.69, 8.27))
+                fig.patch.set_facecolor("white")
+                ax = fig.add_axes([0, 0, 1, 1])
+                ax.axis("off")
+    
                 ax.text(
-                    0.07, 0.83,
-                    "Aucune action corrective urgente n’est générée automatiquement selon les seuils actuels.",
-                    fontsize=11,
-                    color=DARK_TEXT
+                    0.05, 0.93,
+                    "Actions recommandées",
+                    fontsize=22,
+                    fontweight="bold",
+                    color=DARK_GREEN
                 )
-            else:
-                y = 0.84
-                for i, rec in enumerate(recommendations[:10], start=1):
-                    ax.add_patch(plt.Rectangle((0.05, y - 0.055), 0.90, 0.055, color=ORANGE, alpha=0.12))
+    
+                if recommendations is None or len(recommendations) == 0:
+                    ax.add_patch(plt.Rectangle((0.05, 0.80), 0.90, 0.08, color=GREEN, alpha=0.12))
                     ax.text(
-                        0.07,
-                        y - 0.025,
-                        f"{i}. {rec}",
-                        fontsize=10,
-                        color=DARK_TEXT,
-                        va="center"
+                        0.07, 0.83,
+                        "Aucune action corrective urgente n’est générée automatiquement selon les seuils actuels.",
+                        fontsize=11,
+                        color=DARK_TEXT
                     )
-                    y -= 0.075
-
-            ax.text(
-                0.05, 0.12,
-                "Conclusion",
-                fontsize=16,
-                fontweight="bold",
-                color=DARK_GREEN
-            )
-
-            ax.text(
-                0.05, 0.07,
-                "Ce rapport consolide les indicateurs affichés dans l’application afin de faciliter "
-                "le suivi opérationnel, la priorisation des actions PMP et l’identification des fondoirs critiques.",
-                fontsize=10.5,
-                color=DARK_TEXT,
-                wrap=True
-            )
-
-            pdf.savefig(fig, bbox_inches="tight")
-            plt.close(fig)
-
-        buffer.seek(0)
-        return buffer.getvalue()
-
-    except Exception as e:
-        st.error(f"Erreur lors de la génération du PDF : {e}")
-        return None
+                else:
+                    y = 0.84
+                    for i, rec in enumerate(recommendations[:10], start=1):
+                        ax.add_patch(plt.Rectangle((0.05, y - 0.055), 0.90, 0.055, color=ORANGE, alpha=0.12))
+                        ax.text(
+                            0.07,
+                            y - 0.025,
+                            f"{i}. {rec}",
+                            fontsize=10,
+                            color=DARK_TEXT,
+                            va="center"
+                        )
+                        y -= 0.075
+    
+                ax.text(
+                    0.05, 0.12,
+                    "Conclusion",
+                    fontsize=16,
+                    fontweight="bold",
+                    color=DARK_GREEN
+                )
+    
+                ax.text(
+                    0.05, 0.07,
+                    "Ce rapport consolide les indicateurs affichés dans l’application afin de faciliter "
+                    "le suivi opérationnel, la priorisation des actions PMP et l’identification des fondoirs critiques.",
+                    fontsize=10.5,
+                    color=DARK_TEXT,
+                    wrap=True
+                )
+    
+                pdf.savefig(fig, bbox_inches="tight")
+                plt.close(fig)
+    
+            buffer.seek(0)
+            return buffer.getvalue()
+    
+        except Exception as e:
+            st.error(f"Erreur lors de la génération du PDF : {e}")
+            return None
 
 
 with tab4:
