@@ -61,6 +61,12 @@ def load_setting(name, default_value):
         return type(default_value)(result.data[0]["setting_value"])
 
     return default_value
+def load_incidents():
+    try:
+        response = supabase.table("incidents").select("*").execute()
+        return pd.DataFrame(response.data)
+    except:
+        return pd.DataFrame()
 
 
 def login_page():
