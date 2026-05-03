@@ -719,7 +719,7 @@ with st.sidebar.expander("Seuils de contrôle", expanded=False):
         availability_target = st.number_input("Disponibilité cible (%)", min_value=0.0, max_value=100.0, value=85.0, step=1.0, key="availability_target")
 
     criticality_threshold = st.number_input("Seuil criticité AMDEC", min_value=0, max_value=1000, value=300, step=10, key="criticality_threshold")
-     if st.button("Enregistrer les seuils"):
+    if st.button("Enregistrer les seuils"):
         log_action(
             st.session_state["username"],
             "Modification des seuils",
