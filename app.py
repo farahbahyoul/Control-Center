@@ -985,7 +985,7 @@ else:
             st.session_state.manual_amdec = pd.concat([st.session_state.manual_amdec, new_row], ignore_index=True)
             st.rerun()
 
-    incidents = st.session_state.manual_incidents
+    incidents = load_incidents()
     serpentins = st.session_state.manual_serpentins
     process = st.session_state.manual_process
     maintenance = st.session_state.manual_maintenance
