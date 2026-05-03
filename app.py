@@ -707,29 +707,6 @@ if st.sidebar.button("Se déconnecter"):
     st.session_state["username"] = ""
     st.rerun()
 
-st.sidebar.markdown("### Dernières activités")
-
-try:
-    logs = (
-        supabase.table("activity_log")
-        .select("*")
-        .order("created_at", desc=True)
-        .limit(5)
-        .execute()
-    )
-
-    for log in logs.data:
-        st.sidebar.markdown(
-            f"**{log['username']}**  \n"
-            f"{log['action']}  \n"
-            f"<small>{log['created_at']}</small>",
-            unsafe_allow_html=True
-        )
-
-except Exception as e:
-    st.sidebar.warning("Historique indisponible")
-st.sidebar.divider()
-
 with st.sidebar.expander("Seuils de contrôle", expanded=False):
     sc1, sc2 = st.columns(2)
 
@@ -747,7 +724,30 @@ st.sidebar.divider()
 
 with st.sidebar.expander("Gestion des données", expanded=False):
     data_mode = st.radio("Mode d’alimentation des données", ["Données de démonstration", "Importation de fichiers", "Saisie manuelle"])
+st.sidebar.divider()
 
+with st.sidebar.expander("📜 Historique des actions", expanded=False):
+
+    try:
+        logs = (
+            supabase.table("activity_log")
+            .select("*")
+            .order("created_at", desc=True)
+            .limit(5)
+            .execute()
+        )
+
+        for log in logs.data:
+            st.markdown(
+                f"**{log['username']}**  \n"
+                f"{log['action']}  \n"
+                f"<small>{log['created_at']}</small>",
+                unsafe_allow_html=True
+            )
+
+    except:
+        st.warning("Historique indisponible")
+        
 st.markdown('<div class="subtitle">Reliability & Availability Analysis</div>', unsafe_allow_html=True)
 
 
