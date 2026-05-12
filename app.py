@@ -786,21 +786,22 @@ with st.sidebar.expander("Seuils de contrôle", expanded=False):
         key="criticality_threshold"
     )
 
-    if st.button("Enregistrer les seuils"):
-        save_setting("pressure_min", pressure_min)
-        save_setting("sulfur_temp_min", sulfur_temp_min)
-        save_setting("sulfur_temp_max", sulfur_temp_max)
-        save_setting("availability_target", availability_target)
-        save_setting("criticality_threshold", criticality_threshold)
+   if st.button("Enregistrer les seuils"):
+    save_setting("pressure_min", pressure_min)
+    save_setting("sulfur_temp_min", sulfur_temp_min)
+    save_setting("sulfur_temp_max", sulfur_temp_max)
+    save_setting("availability_target", availability_target)
+    save_setting("criticality_threshold", criticality_threshold)
 
-        log_action(
-            st.session_state["username"],
-            "Modification des seuils",
-            f"Pression={pressure_min} | Temp min={sulfur_temp_min} | Temp max={sulfur_temp_max} | "
-            f"Dispo cible={availability_target} | Criticité={criticality_threshold}"
-        )
+    log_action(
+        st.session_state["username"],
+        "Modification des seuils",
+        f"Pression={pressure_min} | Temp min={sulfur_temp_min} | Temp max={sulfur_temp_max} | "
+        f"Dispo cible={availability_target} | Criticité={criticality_threshold}"
+    )
 
-        st.success("Seuils enregistrés")
+    st.success("Seuils enregistrés")
+    st.rerun()
 st.sidebar.divider()
 
 with st.sidebar.expander("Gestion des données", expanded=False):
@@ -1111,21 +1112,121 @@ with tab0:
     else:
         st.markdown('<div class="good-box">Situation maîtrisée selon les seuils définis.</div>', unsafe_allow_html=True)
 
-    st.markdown("## Indicateurs clés")
-    m1, m2, m3 = st.columns(3)
-    with m1:
-        pressure_delta = last_pressure - pressure_min
-        st.metric("Pression vapeur actuelle", f"{last_pressure:.2f} bar", f"{pressure_delta:+.2f} bar vs seuil")
-    with m2:
-        if sulfur_temp_min <= last_sulfur_temp <= sulfur_temp_max:
-            temp_note = "Dans la plage"
-        elif last_sulfur_temp < sulfur_temp_min:
-            temp_note = f"{last_sulfur_temp - sulfur_temp_min:+.1f} °C vs min"
-        else:
-            temp_note = f"{last_sulfur_temp - sulfur_temp_max:+.1f} °C vs max"
-        st.metric("Température soufre actuelle", f"{last_sulfur_temp:.1f} °C", temp_note)
-    with m3:
-        st.metric("Actions PMP en retard", len(late_tasks), f"{len(upcoming_tasks)} prévues dans 7 jours")
+   st.markdown("## Indicateurs clés")
+m1, m2, m3 = st.columns(3)
+
+with m1:
+    if last_pressure < pressure_min:
+        pressure_note = f"↓ {pressure_min - last_pressure:.2f} bar sous le seuil"
+        pressure_bg = RED_SOFT
+        pressure_color = RED_MAIN
+    else:
+        pressure_note = f"↑ {last_pressure - pressure_min:.2f} bar au-dessus du seuil"
+        pressure_bg = GREEN_SOFT
+        pressure_color = GREEN_MAIN
+
+    st.markdown(f"""
+    <div style="
+        background:white;
+        border-radius:16px;
+        padding:20px;
+        border-left:7px solid {pressure_color};
+        box-shadow:0 5px 16px rgba(15,47,42,0.08);
+    ">
+        <div style="font-size:15px; color:#1F2937;">Pression vapeur actuelle</div>
+        <div style="font-size:34px; font-weight:800; color:{GREEN_DARK}; margin-top:10px;">
+            {last_pressure:.2f} bar
+        </div>
+        <div style="
+            display:inline-block;
+            margin-top:10px;
+            padding:5px 10px;
+            border-radius:999px;
+            background:{pressure_bg};
+            color:{pressure_color};
+            font-weight:700;
+            font-size:14px;
+        ">
+            {pressure_note}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with m2:
+    if last_sulfur_temp < sulfur_temp_min:
+        temp_note = f"↓ {sulfur_temp_min - last_sulfur_temp:.1f} °C sous le seuil min"
+        temp_bg = RED_SOFT
+        temp_color = RED_MAIN
+    elif last_sulfur_temp > sulfur_temp_max:
+        temp_note = f"↑ {last_sulfur_temp - sulfur_temp_max:.1f} °C au-dessus du seuil max"
+        temp_bg = RED_SOFT
+        temp_color = RED_MAIN
+    else:
+        temp_note = "Dans la plage normale"
+        temp_bg = GREEN_SOFT
+        temp_color = GREEN_MAIN
+
+    st.markdown(f"""
+    <div style="
+        background:white;
+        border-radius:16px;
+        padding:20px;
+        border-left:7px solid {temp_color};
+        box-shadow:0 5px 16px rgba(15,47,42,0.08);
+    ">
+        <div style="font-size:15px; color:#1F2937;">Température soufre actuelle</div>
+        <div style="font-size:34px; font-weight:800; color:{GREEN_DARK}; margin-top:10px;">
+            {last_sulfur_temp:.1f} °C
+        </div>
+        <div style="
+            display:inline-block;
+            margin-top:10px;
+            padding:5px 10px;
+            border-radius:999px;
+            background:{temp_bg};
+            color:{temp_color};
+            font-weight:700;
+            font-size:14px;
+        ">
+            {temp_note}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+with m3:
+    if len(late_tasks) > 0:
+        pmp_bg = RED_SOFT
+        pmp_color = RED_MAIN
+    else:
+        pmp_bg = GREEN_SOFT
+        pmp_color = GREEN_MAIN
+
+    st.markdown(f"""
+    <div style="
+        background:white;
+        border-radius:16px;
+        padding:20px;
+        border-left:7px solid {pmp_color};
+        box-shadow:0 5px 16px rgba(15,47,42,0.08);
+    ">
+        <div style="font-size:15px; color:#1F2937;">Actions PMP en retard</div>
+        <div style="font-size:34px; font-weight:800; color:{GREEN_DARK}; margin-top:10px;">
+            {len(late_tasks)}
+        </div>
+        <div style="
+            display:inline-block;
+            margin-top:10px;
+            padding:5px 10px;
+            border-radius:999px;
+            background:{pmp_bg};
+            color:{pmp_color};
+            font-weight:700;
+            font-size:14px;
+        ">
+            {len(upcoming_tasks)} prévues dans 7 jours
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("## Disponibilité par fondoir")
     if "fondoir" in serpentins.columns and "etat" in serpentins.columns and len(serpentins) > 0:
