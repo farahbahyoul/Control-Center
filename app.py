@@ -786,23 +786,23 @@ with st.sidebar.expander("Seuils de contrôle", expanded=False):
         key="criticality_threshold"
     )
 
-   if st.button("Enregistrer les seuils"):
-    save_setting("pressure_min", pressure_min)
-    save_setting("sulfur_temp_min", sulfur_temp_min)
-    save_setting("sulfur_temp_max", sulfur_temp_max)
-    save_setting("availability_target", availability_target)
-    save_setting("criticality_threshold", criticality_threshold)
-
-    log_action(
-        st.session_state["username"],
-        "Modification des seuils",
-        f"Pression={pressure_min} | Temp min={sulfur_temp_min} | Temp max={sulfur_temp_max} | "
-        f"Dispo cible={availability_target} | Criticité={criticality_threshold}"
-    )
-
-    st.success("Seuils enregistrés")
-    st.rerun()
-st.sidebar.divider()
+       if st.button("Enregistrer les seuils"):
+        save_setting("pressure_min", pressure_min)
+        save_setting("sulfur_temp_min", sulfur_temp_min)
+        save_setting("sulfur_temp_max", sulfur_temp_max)
+        save_setting("availability_target", availability_target)
+        save_setting("criticality_threshold", criticality_threshold)
+    
+        log_action(
+            st.session_state["username"],
+            "Modification des seuils",
+            f"Pression={pressure_min} | Temp min={sulfur_temp_min} | Temp max={sulfur_temp_max} | "
+            f"Dispo cible={availability_target} | Criticité={criticality_threshold}"
+        )
+    
+        st.success("Seuils enregistrés")
+        st.rerun()
+    st.sidebar.divider()
 
 with st.sidebar.expander("Gestion des données", expanded=False):
     data_mode = st.radio("Mode d’alimentation des données", ["Données de démonstration", "Importation de fichiers", "Saisie manuelle"])
