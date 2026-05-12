@@ -1112,7 +1112,7 @@ with tab0:
     else:
         st.markdown('<div class="good-box">Situation maîtrisée selon les seuils définis.</div>', unsafe_allow_html=True)
 
-   st.markdown("## Indicateurs clés")
+    st.markdown("## Indicateurs clés")
 m1, m2, m3 = st.columns(3)
 
 with m1:
