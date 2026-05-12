@@ -786,7 +786,7 @@ with st.sidebar.expander("Seuils de contrôle", expanded=False):
         key="criticality_threshold"
     )
 
-       if st.button("Enregistrer les seuils"):
+    if st.button("Enregistrer les seuils"):
         save_setting("pressure_min", pressure_min)
         save_setting("sulfur_temp_min", sulfur_temp_min)
         save_setting("sulfur_temp_max", sulfur_temp_max)
